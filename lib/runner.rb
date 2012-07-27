@@ -25,7 +25,14 @@ module Swift
 
       private
 
-      def container_object_list(container)
+      def create_container(connection)
+        unless connection.container_exists?(@swift_container)
+          connection.create_container(@swift_container)
+        end
+      end
+
+      def container_object_list(connection)
+        container = connection.container(@swift_container)
         object_list  = Array.new
         call_options = { :limit => 2048 }
         puts "Getting container object list\n"
@@ -45,8 +52,10 @@ module Swift
       def populate_objects
         Thread.new do
           object_lists = Array.new
-          object_lists << container_object_list(@swift_clusters[0].container(@swift_container))
-          object_lists << container_object_list(@swift_clusters[1].container(@swift_container))
+          @swift_clusters.each do |connection|
+            create_container(connection)
+            object_lists << container_object_list(connection)
+          end
           puts "Determining objects to be replicated"
           object_lists[0].each do |object_name|
             unless object_lists[1].include?(object_name)
