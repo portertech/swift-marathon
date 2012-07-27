@@ -39,7 +39,12 @@ module Swift
         puts "Getting container object list\n"
         loop do
           putc "."
-          response_list = container.objects(call_options)
+          begin
+            response_list = container.objects(call_options)
+          rescue
+            putc "x"
+            retry
+          end
           object_list  += response_list
           if response_list.size < call_options[:limit]
             break
