@@ -18,6 +18,9 @@ module Swift
         2.times do
           create_worker
         end
+        loop do
+          sleep 30
+        end
       end
 
       private
