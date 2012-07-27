@@ -58,17 +58,23 @@ module Swift
         object  = @swift_clusters[0].container(@swift_container).object(object_name)
         replica = @swift_clusters[1].container(@swift_container).create_object(object_name)
         pipe    = IO.pipe
-        Thread.new do
-          object.data_stream do |chunk|
-            pipe[1].write(chunk)
+        begin
+          Thread.new do
+            object.data_stream do |chunk|
+              pipe[1].write(chunk)
+            end
+            pipe[1].close
           end
-          pipe[1].close
+          headers = {
+            "Etag" => object.etag
+          }
+          replica.write(pipe[0], headers)
+          pipe[0].close
+        rescue => error
+          puts "Unexpected error: #{error}"
+          pipe[0].close rescue nil
+          pipe[1].close rescue nil
         end
-        headers = {
-          "Etag" => object.etag
-        }
-        replica.write(pipe[0], headers)
-        pipe[0].close
       end
 
       def create_worker
