@@ -9,13 +9,14 @@ module Swift
         @swift_clusters << CloudFiles::Connection.new(options[:swift][:primary])
         @swift_clusters << CloudFiles::Connection.new(options[:swift][:secondary])
         @swift_container = options[:swift][:container]
+        @workers         = options[:workers] || 3
         @objects         = Queue.new
         Thread.abort_on_exception = true
       end
 
       def run!
         populate_objects
-        2.times do
+        @workers.times do
           create_worker
         end
         loop do
@@ -32,7 +33,7 @@ module Swift
       end
 
       def container_object_list(connection)
-        container = connection.container(@swift_container)
+        container    = connection.container(@swift_container)
         object_list  = Array.new
         call_options = { :limit => 2048 }
         puts "Getting container object list\n"
@@ -82,6 +83,7 @@ module Swift
           }
           replica.write(pipe[0], headers)
           pipe[0].close
+          puts "Replication complete: #{object_name}"
         rescue => error
           puts "Unexpected error: #{error}"
           pipe[0].close rescue nil
@@ -94,6 +96,7 @@ module Swift
         Thread.new do
           loop do
             begin
+              puts "Waiting for object to replicate"
               object_name = @objects.shift
               replicate_object(object_name)
             rescue => error
