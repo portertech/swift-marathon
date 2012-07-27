@@ -1,5 +1,6 @@
 require "thread"
 require "cloudfiles"
+require File.join(File.dirname(__FILE__), "patches", "cloudfiles")
 
 module Swift
   module Marathon
