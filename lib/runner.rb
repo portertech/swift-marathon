@@ -101,7 +101,7 @@ module Swift
         Thread.new do
           loop do
             begin
-              puts "Waiting for object to replicate"
+              puts "Waiting for an object to replicate"
               object_name = @objects.shift
               replicate_object(object_name)
             rescue => error
