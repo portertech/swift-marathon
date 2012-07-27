@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+unless $:.include?(File.dirname(__FILE__) + '/../lib/')
+  $: << File.dirname(__FILE__) + '/../lib'
+end
+
+require "config"
+require "runner"
+
+config = Swift::Marathon::Config.new
+runner = Swift::Marathon::Runner.new(config.read)
+runner.run!
