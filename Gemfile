@@ -1,6 +1,5 @@
 source :rubygems
 
-gem "jruby-openssl", "0.7.4"
 gem "json"
 gem "cloudfiles"
 
