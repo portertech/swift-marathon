@@ -78,11 +78,16 @@ module Swift
         replica = @swift_clusters[1].container(@swift_container).create_object(object_name)
         pipe    = IO.pipe
         begin
+          main_thread = Thread.current
           Thread.new do
-            object.data_stream do |chunk|
-              pipe[1].write(chunk)
+            begin
+              object.data_stream do |chunk|
+                pipe[1].write(chunk)
+              end
+              pipe[1].close
+            rescue => error
+              main_thread.raise(error.to_s)
             end
-            pipe[1].close
           end
           headers = {
             "Etag" => object.etag
